@@ -45,7 +45,7 @@ class Do:
     def mark_process_window_as_closed(self):
         try:
             self.__process_renderer.destroy_process_window()
-        except Exception, e:
+        except Exception as e:
             log("Error: %s" % str(e))
 
     def show_process_from_command_window(self):
@@ -129,7 +129,7 @@ class ProcessCollection:
         return len(self.get_running()) == 0
 
     def get_running(self):
-        return filter(lambda p: p.is_running(), self.__processes.values())
+        return [p for p in self.__processes.values() if p.is_running()]
 
     def kill_all(self):
         for process in self.get_running():

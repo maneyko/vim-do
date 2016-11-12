@@ -3,6 +3,14 @@ if exists("g:do_loaded") || &cp
     finish
 endif
 
+if has('python3')
+  let s:pyfile='py3file'
+  let s:python='python3'
+else
+  let s:pyfile='pyfile'
+  let s:python='python'
+endif
+
 " Vars used by this script, don't change
 let g:do_loaded = 1
 let s:existing_update_time = &updatetime
@@ -17,15 +25,15 @@ let s:do_auto_show_process_window = 1
 
 " Load Python script
 if filereadable($VIMRUNTIME."/plugin/python/do.py")
-  pyfile $VIMRUNTIME/plugin/do.py
+  exec s:pyfile "$VIMRUNTIME/plugin/do.py"
 elseif filereadable($HOME."/.vim/plugin/python/do.py")
-  pyfile $HOME/.vim/plugin/python/do.py
+  exec s:pyfile "$HOME/.vim/plugin/python/do.py"
 else
   " when we use pathogen for instance
   let $CUR_DIRECTORY=expand("<sfile>:p:h")
 
   if filereadable($CUR_DIRECTORY."/python/do.py")
-    pyfile $CUR_DIRECTORY/python/do.py
+    exec s:pyfile "$CUR_DIRECTORY/python/do.py"
   else
     call confirm('vdebug.vim: Unable to find do.py. Place it in either your home vim directory or in the Vim runtime directory.', 'OK')
   endif
@@ -90,7 +98,7 @@ endfunction
 " function will reload them.
 "
 function! do#ReloadOptions()
-    python do_async.reload_options()
+    exec s:python "do_async.reload_options()"
 endfunction
 
 ""
@@ -121,7 +129,7 @@ function! do#Execute(command, ...)
         call do#error("Supplied command is empty")
     else
         let s:previous_command = l:command
-python <<_EOF_
+exec s:python "<< _EOF_"
 do_async.execute(vim.eval("l:command"), int(vim.eval("l:quiet")) == 1)
 _EOF_
     endif
@@ -144,7 +152,7 @@ endfunction
 " @param string file_path The path to the file to write log information
 "
 function! do#EnableLogger(file_path)
-python <<_EOF_
+exec s:python "<< _EOF_"
 do_async.enable_logger(vim.eval("a:file_path"))
 _EOF_
 endfunction
@@ -155,7 +163,7 @@ endfunction
 " The command window details currently running and finished processes.
 "
 function! do#ToggleCommandWindow()
-    python do_async.toggle_command_window()
+    exec s:python "do_async.toggle_command_window()"
 endfunction
 
 ""
@@ -164,7 +172,7 @@ endfunction
 " Executed automatically via an autocommand.
 "
 function! do#MarkCommandWindowAsClosed()
-    python do_async.mark_command_window_as_closed()
+    exec s:python "do_async.mark_command_window_as_closed()"
 endfunction
 
 ""
@@ -173,14 +181,14 @@ endfunction
 " Executed automatically via an autocommand.
 "
 function! do#MarkProcessWindowAsClosed()
-    python do_async.mark_process_window_as_closed()
+    exec s:python "do_async.mark_process_window_as_closed()"
 endfunction
 
 ""
 " Trigger selection of a process in the command window.
 "
 function! do#ShowProcessFromCommandWindow()
-    python do_async.show_process_from_command_window()
+    exec s:python "do_async.show_process_from_command_window()"
 endfunction
 
 ""
@@ -204,12 +212,12 @@ function! do#AssignAutocommands()
     execute "nnoremap <silent> " . do#get("do_refresh_key") . " :call do#nop()<CR>"
     execute "inoremap <silent> " . do#get("do_refresh_key") . ' <C-O>:call do#nop()<CR>'
     augroup vim_do
-        au CursorHold * python do_async.check()
-        au CursorHoldI * python do_async.check()
-        au CursorMoved * python do_async.check()
-        au CursorMovedI * python do_async.check()
-        au FocusGained * python do_async.check()
-        au FocusLost * python do_async.check()
+        au CursorHold * exec s:python "do_async.check()"
+        au CursorHoldI * exec s:python "do_async.check()"
+        au CursorMoved * exec s:python "do_async.check()"
+        au CursorMovedI * exec s:python "do_async.check()"
+        au FocusGained * exec s:python "do_async.check()"
+        au FocusLost * exec s:python "do_async.check()"
     augroup END
     let &updatetime=do#get("do_update_time")
 endfunction
@@ -247,5 +255,5 @@ function! s:getVisualSelection()
 endfunction
 
 " Initialize do
-python do_async = Do()
-autocmd VimLeavePre * python do_async.stop()
+exec s:python "do_async = Do()"
+autocmd VimLeavePre * exec s:python "do_async.stop()"
